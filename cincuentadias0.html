@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>50 Days Challenge Tracker</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Use Inter Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7; /* Light background for Notion feel */
+            min-height: 100vh;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* Slate-300 */
+            border-radius: 4px;
+        }
+        /* Checkbox styling to look more like Notion toggles */
+        .notion-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #9ca3af; /* Gray-400 */
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .notion-checkbox:checked {
+            background-color: #1a73e8; /* Blue accent */
+            border-color: #1a73e8;
+        }
+        .notion-checkbox:checked::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        /* Dark Mode for Dashboard */
+        .notion-dark-card {
+            background-color: #2f3439; /* Darker background */
+            color: #dcdfe4; /* Light text */
+            border: 1px solid #4a5057; /* Subtle border */
+        }
+        .notion-dark-card .text-gray-400 {
+            color: #94a3b8; /* Slate-400 for secondary text */
+        }
+        .notion-dark-card input.notion-checkbox {
+            border-color: #64748b; /* Slate-500 */
+        }
+        .notion-dark-card h2, .notion-dark-card h3 {
+            color: #e5e7eb; /* Lightest text for headings */
+        }
+        /* Custom styles for the Big Day Counter */
+        .day-counter {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 800;
+            line-height: 1;
+        }
+        /* Style for modals */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        /* Points container fix */
+        .points-container {
+            display: inline-flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="min-h-screen">
+    <!-- Landing Page (Default View) -->
+    <div id="landing-page" class="flex flex-col items-center justify-center p-8 min-h-screen transition-opacity duration-500 bg-gray-100">
+        <div class="max-w-4xl w-full mx-auto p-10 bg-white shadow-2xl rounded-2xl border border-gray-200">
+            <h1 class="text-7xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                The <span class="text-blue-600">50 Days</span> Challenge
+            </h1>
+            <p class="text-xl text-gray-500 mb-12">
+                Consistency is key. Track your habits, maintain your strikes, and conquer 50 days of positive change together.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- User Card -->
+                <div class="p-8 bg-blue-50 rounded-xl border border-blue-200 transition duration-300 hover:shadow-lg hover:bg-blue-100 cursor-pointer" onclick="viewDashboard('User')">
+                    <h2 class="text-3xl font-bold mb-2 text-blue-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8 mr-3 text-blue-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+                        My Habits
+                    </h2>
+                    <p class="text-gray-600">Check your progress and log today's routine.</p>
+                </div>
+
+                <!-- Girlfriend Card -->
+                <div class="p-8 bg-pink-50 rounded-xl border border-pink-200 transition duration-300 hover:shadow-lg hover:bg-pink-100 cursor-pointer" onclick="viewDashboard('Girlfriend')">
+                    <h2 class="text-3xl font-bold mb-2 text-pink-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8 mr-3 text-pink-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.004-4.312 2.733-.715-1.729-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                        </svg>
+                        Girlfriend's Progress
+                    </h2>
+                    <p class="text-gray-600">View her challenge status (Read-Only).</p>
+                </div>
+            </div>
+            
+            <p class="mt-12 text-center text-sm text-gray-400">
+                Data is currently stored locally in your browser. Ready for a seamless upgrade to a database!
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard Page (Habit Tracking) -->
+    <div id="dashboard-page" class="hidden min-h-screen p-4 md:p-10 bg-[#24272c] transition-opacity duration-500">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Header and Stats -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-4 border-b border-gray-600">
+                <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                    <button onclick="viewLandingPage()" class="p-2 text-gray-400 hover:text-blue-400 rounded-full transition duration-150 notion-dark-card border-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path fill-rule="evenodd" d="M11.03 3.23a.75.75 0 0 1 0 1.06L5.81 10.5h14.44a.75.75 0 0 1 0 1.5H5.81l5.22 6.21a.75.75 0 1 1-1.06 1.06l-6.5-7.75a.75.75 0 0 1 0-1.06l6.5-7.75a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <h1 id="dashboard-title" class="text-4xl font-bold text-gray-100"></h1>
+                </div>
+
+                <!-- Stats: Day Counter & Strikes -->
+                <div class="flex items-center space-x-6 notion-dark-card p-3 rounded-xl shadow-lg">
+                    <div class="text-center">
+                        <span class="day-counter text-blue-400" id="day-counter">0</span>
+                        <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">Day Count</p>
+                    </div>
+                    <div class="h-16 w-px bg-gray-600"></div>
+                    <div class="text-center">
+                        <span class="text-5xl font-extrabold" id="strike-counter">5</span>
+                        <p class="text-sm font-medium text-gray-400 uppercase tracking-wider">Strikes Left</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Today's Routine Card (Dark Mode, Notion Style) -->
+            <div id="today-entry-card" class="mb-10 notion-dark-card p-6 rounded-xl shadow-2xl">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                    <h2 class="text-2xl font-semibold flex items-center text-blue-300">
+                        <span class="mr-3">📅</span>
+                        Today's Routine (<span id="today-date"></span>)
+                    </h2>
+                    <button onclick="openHabitManagerModal()" class="text-sm font-medium text-gray-400 hover:text-blue-400 transition duration-150 flex items-center space-x-1" id="manage-habits-button">
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                            <path d="M10 3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM10 8.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM11.5 15.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z" />
+                        </svg>
+                        Manage Habits
+                    </button>
+                </div>
+                
+                <p id="save-status" class="text-sm text-green-400 mb-4 hidden">Routine saved for today!</p>
+                <p id="fail-status" class="text-sm text-red-400 mb-4 hidden"></p>
+
+                <!-- Base Habits (Mandatory for Day Count) -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3 text-gray-300">Base Habits (All Required for Day Success)</h3>
+                    <div id="base-habits-list" class="space-y-3">
+                        <!-- Habits will be inserted here by JS -->
+                    </div>
+                </div>
+
+                <!-- Extra Habits (1 Point Each) - Aesthetic Fix Applied Here -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3 text-gray-300 flex justify-between items-center">
+                        <span class="points-container">
+                            Extra Habits (Points: <span id="current-points" class="font-bold text-green-400 ml-1">0</span>)
+                        </span>
+                    </h3>
+                    <div id="extra-habits-list" class="space-y-3">
+                        <!-- Habits will be inserted here by JS -->
+                    </div>
+                </div>
+
+                <!-- Bad Habits (Fail Day if CHECKED) -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-3 text-gray-300">Bad Habits (Must be UNCHECKED for Day Success)</h3>
+                    <div id="bad-habits-list" class="space-y-3">
+                        <!-- Habits will be inserted here by JS -->
+                    </div>
+                </div>
+
+                <button onclick="saveDailyRoutine()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition duration-200 shadow-lg mt-4">
+                    Save Day's Progress
+                </button>
+            </div>
+
+            <!-- History and Charts Container -->
+            <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-2">
+                <h2 class="text-2xl font-semibold text-gray-100">Progress Overview</h2>
+                <div class="flex space-x-2">
+                    <button id="view-grid-btn" onclick="setViewMode('grid')" class="p-2 text-blue-400 hover:text-blue-200 rounded-lg notion-dark-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd" d="M10 2a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm4 4a1 1 0 1 0-2 0v2a1 1 0 1 0 2 0V6ZM6 6a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H6Zm0 4a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H6Zm0 4a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H6Zm10-4a1 1 0 1 0-2 0v2a1 1 0 1 0 2 0v-2ZM14 14a1 1 0 1 0-2 0v2a1 1 0 1 0 2 0v-2Z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M2.5 4A2.5 2.5 0 0 1 5 1.5h10A2.5 2.5 0 0 1 17.5 4v12a2.5 2.5 0 0 1-2.5 2.5H5A2.5 2.5 0 0 1 2.5 16V4Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button id="view-charts-btn" onclick="setViewMode('charts')" class="p-2 text-gray-400 hover:text-blue-200 rounded-lg notion-dark-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                            <path d="M13 10a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1Z" />
+                            <path d="M5 10a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z" />
+                            <path d="M13 14a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1Z" />
+                            <path d="M5 14a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z" />
+                            <path d="M10 6a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1Z" />
+                            <path d="M11 10a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1Z" />
+                            <path d="M15 9a1 1 0 0 0-1 1 1 1 0 0 0 1 1h1a1 1 0 1 0 0-2h-1Z" />
+                            <path d="M6 9a1 1 0 0 0-1 1 1 1 0 0 0 1 1h1a1 1 0 1 0 0-2H6Z" />
+                            <path d="M10 4a1 1 0 1 1-2 0V3a1 1 0 1 1 2 0v1Z" />
+                            <path d="M3 10a1 1 0 0 0-1 1 1 1 0 0 0 1 1h1a1 1 0 1 0 0-2H3Z" />
+                            <path d="M10 17a1 1 0 1 0 0-2h2a1 1 0 1 0 0-2h-2a1 1 0 1 0 0 2v1Z" />
+                            <path d="M10 13a1 1 0 1 1-2 0V6a1 1 0 1 1 2 0v7Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="history-view-container">
+                <!-- Filters for History Grid -->
+                <div id="history-filters" class="flex space-x-3 mb-6">
+                    <button class="filter-btn bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition duration-150 hover:bg-blue-700" data-filter="all">All Time</button>
+                    <button class="filter-btn bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold transition duration-150 hover:bg-gray-500" data-filter="week">This Week</button>
+                    <button class="filter-btn bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold transition duration-150 hover:bg-gray-500" data-filter="month">This Month</button>
+                    <button class="filter-btn bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-semibold transition duration-150 hover:bg-gray-500" data-filter="year">This Year</button>
+                </div>
+                
+                <div id="history-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Past day cards will be populated here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Charts View -->
+            <div id="charts-view" class="hidden notion-dark-card p-6 rounded-xl shadow-2xl">
+                <h3 class="text-xl font-semibold mb-4 text-gray-200">Progress Charts</h3>
+                
+                <div class="flex space-x-4 mb-6">
+                    <label class="text-gray-400 flex items-center">
+                        Select Month:
+                        <select id="chart-month-select" onchange="renderCharts()" class="ml-2 p-2 rounded notion-dark-card border-gray-600 text-gray-200">
+                            <!-- Options populated by JS -->
+                        </select>
+                    </label>
+                    <label class="text-gray-400 flex items-center">
+                        Chart Type:
+                        <select id="chart-type-select" onchange="renderCharts()" class="ml-2 p-2 rounded notion-dark-card border-gray-600 text-gray-200">
+                            <option value="success_rate">Success Rate (Days)</option>
+                            <option value="points_total">Total Points (Extra Habits)</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <div class="w-full h-96">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Habit Manager Modal -->
+<div id="habit-manager-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4">
+        <div class="flex justify-between items-center border-b pb-3 mb-4">
+            <h3 class="text-2xl font-bold text-gray-900">Manage Habits</h3>
+            <button onclick="closeHabitManagerModal()" class="text-gray-500 hover:text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+
+        <!-- Tab Navigation for Habit Types -->
+        <div class="flex border-b mb-4">
+            <button class="px-4 py-2 text-sm font-medium border-b-2" id="tab-base" data-type="base" onclick="setActiveTab('base')">Base Habits</button>
+            <button class="px-4 py-2 text-sm font-medium border-b-2" id="tab-extra" data-type="extra" onclick="setActiveTab('extra')">Extra Habits</button>
+            <button class="px-4 py-2 text-sm font-medium border-b-2" id="tab-bad" data-type="bad" onclick="setActiveTab('bad')">Bad Habits</button>
+        </div>
+
+        <!-- Habit List Container (Populated by JS) -->
+        <div id="habit-manager-list" class="max-h-60 overflow-y-auto mb-4">
+            <!-- Habit items will be rendered here -->
+        </div>
+
+        <!-- Add New Habit Form -->
+        <div class="border-t pt-4">
+            <h4 class="text-lg font-semibold mb-2" id="add-habit-title">Add New Base Habit</h4>
+            <div class="flex space-x-2">
+                <input type="text" id="new-habit-name" placeholder="Habit Name (e.g., Meditate 10 mins)" class="flex-grow p-2 border rounded focus:ring-blue-500 focus:border-blue-500">
+                <button onclick="addNewHabit()" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded font-semibold">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Milestone Celebration Modal -->
+<div id="celebration-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg mx-4 text-center transform transition-all duration-300 scale-95">
+        <h3 id="celebration-title" class="text-3xl font-extrabold text-blue-600 mb-4 animate-pulse">🎉 Milestone Achieved! 🎉</h3>
+        <p id="celebration-message" class="text-xl text-gray-700 mb-6"></p>
+        
+        <div class="p-4 bg-gray-100 rounded-lg border border-gray-200 mb-6">
+            <p class="text-lg font-medium italic text-gray-800" id="celebration-quote"></p>
+            <p class="text-sm text-gray-500 mt-2" id="celebration-author"></p>
+        </div>
+
+        <button onclick="closeCelebrationModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition duration-200 shadow-lg">
+            Keep Going!
+        </button>
+    </div>
+</div>
+
+
+<script>
+    // --- Configuration and State ---
+    let activeUser = null;
+    const STARTING_STRIKES = 5;
+    const CHALLENGE_GOAL = 50;
+    let currentViewMode = 'grid'; // 'grid' or 'charts'
+    let currentChart = null; // To hold the Chart.js instance
+    let activeHistoryFilter = 'all'; // 'all', 'week', 'month', 'year'
+
+    // Centralized Habit Storage (Default values if nothing in localStorage)
+    const DEFAULT_HABITS = {
+        base: [
+            { id: 'base-habit-1', name: 'Drink Water upon waking up', type: 'good' },
+            { id: 'base-habit-2', name: 'Exercise (30 mins+)', type: 'good' }
+        ],
+        extra: [
+            { id: 'extra-habit-1', name: 'Meditate (10 mins)', points: 1 },
+            { id: 'extra-habit-2', name: 'Read a book (1 chapter)', points: 1 }
+        ],
+        bad: [
+            { id: 'bad-habit-1', name: 'No sugar/junk food', type: 'bad' } // Must be unchecked (bad habit)
+        ]
+    };
+    
+    // Milestone Messages (Focus on books as requested)
+    const MILESTONE_MESSAGES = {
+        50: {
+            title: "The 50 Day Masterpiece!",
+            message: "You have completed your initial 50-day challenge! This consistency is the foundation of a new life. Every day was a step toward the person you aimed to be. Be immensely proud of this profound effort.",
+            quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+            author: "— Aristotle"
+        },
+        80: { // 50 + 30
+            title: "80 Days of Unstoppable Momentum!",
+            message: "You didn't just win the challenge; you built momentum and kept going for another 30 days! This is the mark of true discipline. The path is now a lifestyle, not just a temporary challenge. The best is yet to come.",
+            quote: "The journey of a thousand miles begins with a single step.",
+            author: "— Lao Tzu"
+        }
+        // Add more milestones here if needed (e.g., 100, 150)
+    };
+
+    // --- Habit Management Logic ---
+
+    /**
+     * Retrieves the comprehensive habit configuration from localStorage or uses defaults.
+     * @returns {object} Habits categorized by type.
+     */
+    function getGlobalHabits() {
+        const storedHabits = localStorage.getItem('50days_global_habits');
+        if (storedHabits) {
+            return JSON.parse(storedHabits);
+        }
+        return DEFAULT_HABITS;
+    }
+
+    /**
+     * Saves the comprehensive habit configuration to localStorage.
+     * @param {object} habits The habits object.
+     */
+    function saveGlobalHabits(habits) {
+        localStorage.setItem('50days_global_habits', JSON.stringify(habits));
+    }
+    
+    /**
+     * Generates a unique ID for a new habit.
+     * @param {string} type 'base', 'extra', or 'bad'.
+     * @returns {string} Unique ID.
+     */
+    function generateHabitId(type) {
+        return `${type}-habit-${Date.now()}`;
+    }
+
+    // --- Local Storage Functions (User State) ---
+
+    /**
+     * Gets the current state for a user, or initializes it if it doesn't exist.
+     * @param {string} user 'User' or 'Girlfriend'
+     * @returns {object} The user's challenge state.
+     */
+    function getChallengeState(user) {
+        const key = `50days_${user}`;
+        const storedData = localStorage.getItem(key);
+        if (storedData) {
+            return JSON.parse(storedData);
+        }
+        // Initial state
+        return {
+            dayCount: 0,
+            strikes: STARTING_STRIKES,
+            history: {}, // Key: YYYY-MM-DD, Value: { date, status, score, habits }
+            lastLoginDate: null
+        };
+    }
+
+    /**
+     * Saves the challenge state for a user.
+     * @param {string} user 'User' or 'Girlfriend'
+     * @param {object} state The new state object.
+     */
+    function saveChallengeState(user, state) {
+        const key = `50days_${user}`;
+        localStorage.setItem(key, JSON.stringify(state));
+        updateDashboardUI(); // Refresh UI after saving
+    }
+
+    // --- Utility Functions ---
+
+    /**
+     * Formats the current date as YYYY-MM-DD.
+     * @returns {string} The formatted date.
+     */
+    function getTodayDateKey() {
+    const now = new Date();
+    // Esto fuerza la fecha usando la hora local del navegador (es decir, hora chilena)
+    return now.getFullYear() + '-' +
+           String(now.getMonth() + 1).padStart(2, '0') + '-' +
+           String(now.getDate()).padStart(2, '0');
+}
+
+/*function getTodayDateKey() {
+    const now = new Date();
+    const offsetChile = now.getTimezoneOffset() === 180 ? -3 : -4; // detecta automático verano/invierno
+    const chileTime = new Date(now.getTime() + offsetChile * 60 * 60 * 1000);
+    const year = chileTime.getFullYear();
+    const month = String(chileTime.getMonth() + 1).padStart(2, '0');
+    const day = String(chileTime.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}*/
+
+    /**
+     * Formats a date for display (e.g., 'Thursday, 27 Nov 2025').
+     * @param {string} dateKey YYYY-MM-DD string.
+     * @returns {string} The display date string.
+     */
+    function formatDisplayDate(dateKey) {
+        const date = new Date(dateKey + 'T00:00:00'); // Add T00:00:00 to avoid timezone issues
+        return date.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    
+    // --- UI/View Management ---
+
+    /**
+     * Switches to the main landing page view.
+     */
+    function viewLandingPage() {
+        document.getElementById('landing-page').classList.remove('hidden');
+        document.getElementById('landing-page').classList.add('flex');
+        document.getElementById('dashboard-page').classList.add('hidden');
+        document.getElementById('dashboard-page').classList.remove('block');
+        activeUser = null;
+    }
+
+    /**
+     * Switches to a user's dashboard view.
+     * @param {string} user 'User' or 'Girlfriend'
+     */
+    function viewDashboard(user) {
+        activeUser = user;
+        document.getElementById('dashboard-title').textContent = `${user}'s 50 Days Routine`;
+
+        document.getElementById('landing-page').classList.add('hidden');
+        document.getElementById('landing-page').classList.remove('flex');
+        document.getElementById('dashboard-page').classList.remove('hidden');
+        document.getElementById('dashboard-page').classList.add('block'); // Use 'block' for dashboard layout
+
+        // Set today's date automatically
+        document.getElementById('today-date').textContent = formatDisplayDate(getTodayDateKey());
+        
+        // Render habits in the form before loading routine status
+        renderHabitsToForm();
+        
+        loadDailyRoutine();
+        updateDashboardUI();
+        
+        // Initial view mode: Grid and filter 'all'
+        setViewMode('grid'); 
+        setActiveFilter('all');
+
+        // Girlfriend's dashboard is read-only
+        const isReadOnly = user === 'Girlfriend';
+        const entryCard = document.getElementById('today-entry-card');
+        
+        // Enable/Disable interactive elements
+        entryCard.querySelectorAll('input, button').forEach(el => {
+            if (el.id !== 'view-grid-btn' && el.id !== 'view-charts-btn' && !el.classList.contains('filter-btn')) { 
+                el.disabled = isReadOnly;
+                el.style.opacity = isReadOnly ? 0.7 : 1;
+            }
+        });
+        entryCard.style.opacity = isReadOnly ? 0.8 : 1;
+        document.getElementById('manage-habits-button').disabled = isReadOnly;
+        
+        // Hide save button if read-only
+        document.querySelector('#today-entry-card button[onclick="saveDailyRoutine()"]').style.display = isReadOnly ? 'none' : 'block';
+    }
+
+    /**
+     * Toggles between the History Grid View and the Progress Charts View.
+     * @param {string} mode 'grid' or 'charts'
+     */
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        const gridContainer = document.getElementById('history-view-container');
+        const chartsView = document.getElementById('charts-view');
+        
+        document.getElementById('view-grid-btn').classList.remove('text-blue-400', 'text-gray-400');
+        document.getElementById('view-charts-btn').classList.remove('text-blue-400', 'text-gray-400');
+
+        if (mode === 'grid') {
+            gridContainer.classList.remove('hidden');
+            chartsView.classList.add('hidden');
+            document.getElementById('view-grid-btn').classList.add('text-blue-400');
+            document.getElementById('view-charts-btn').classList.add('text-gray-400');
+            // Re-render grid with current filter
+            renderHistory(getChallengeState(activeUser).history);
+        } else {
+            gridContainer.classList.add('hidden');
+            chartsView.classList.remove('hidden');
+            document.getElementById('view-grid-btn').classList.add('text-gray-400');
+            document.getElementById('view-charts-btn').classList.add('text-blue-400');
+            
+            // Only render charts when switching to charts view
+            populateChartMonthSelector();
+            renderCharts();
+        }
+    }
+
+    /**
+     * Updates all dynamic elements (counters, history, today's status).
+     */
+    function updateDashboardUI() {
+        if (!activeUser) return;
+        const state = getChallengeState(activeUser);
+
+        // 1. Update Counters
+        document.getElementById('day-counter').textContent = state.dayCount;
+        document.getElementById('strike-counter').textContent = state.strikes;
+
+        // Apply visual cues for strikes
+        const strikeEl = document.getElementById('strike-counter');
+        strikeEl.classList.remove('text-green-500', 'text-yellow-500', 'text-red-500');
+        if (state.strikes >= 4) {
+            strikeEl.classList.add('text-green-500');
+        } else if (state.strikes >= 2) {
+            strikeEl.classList.add('text-yellow-500');
+        } else {
+            strikeEl.classList.add('text-red-500');
+        }
+
+        // 2. Update Daily Card (Points)
+        updateDailyScore(); // Ensures points are calculated based on current checks
+
+        // 3. Update History / Charts
+        if (currentViewMode === 'grid') {
+            renderHistory(state.history);
+        } else {
+            renderCharts(); // Re-render charts with new data
+        }
+    }
+    
+    /**
+     * Renders all habit lists in the 'Today\'s Routine' card.
+     */
+    function renderHabitsToForm() {
+        const habits = getGlobalHabits();
+        
+        // Helper to render a list
+        const renderList = (listId, habitArray) => {
+            const listEl = document.getElementById(listId);
+            listEl.innerHTML = habitArray.map(habit => {
+                const isBad = habit.type === 'bad';
+                const statusText = isBad ? 'Fail if Checked' : (habit.points ? `+${habit.points} Point` : 'Mandatory');
+                const statusColor = isBad ? 'text-red-400' : (habit.points ? 'text-gray-400' : 'text-red-400');
+                
+                return `
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-[#3d4249]">
+                        <label class="flex items-center space-x-3 cursor-pointer w-full">
+                            <input type="checkbox" id="${habit.id}" ${habit.points ? `data-points="${habit.points}"` : ''} class="notion-checkbox" onchange="updateDailyScore()">
+                            <span class="text-gray-200">${habit.name}</span>
+                        </label>
+                        <span class="text-xs ${statusColor} font-semibold">${statusText}</span>
+                    </div>
+                `;
+            }).join('');
+        };
+        
+        renderList('base-habits-list', habits.base);
+        renderList('extra-habits-list', habits.extra);
+        renderList('bad-habits-list', habits.bad);
+    }
+
+    /**
+     * Calculates and updates the points for the "Extra Habits" based on current checks.
+     */
+    function updateDailyScore() {
+        if (activeUser === 'Girlfriend') return;
+        
+        let currentPoints = 0;
+        document.querySelectorAll('#extra-habits-list input[type="checkbox"]').forEach(checkbox => {
+            if (checkbox.checked) {
+                currentPoints += parseInt(checkbox.dataset.points || 0);
+            }
+        });
+        document.getElementById('current-points').textContent = currentPoints;
+
+        // Check if day is complete or failed (Base Habits check)
+        const dayComplete = checkBaseHabitsForDaySuccess();
+        const failStatusEl = document.getElementById('fail-status');
+        
+        failStatusEl.classList.add('hidden');
+
+        if (!dayComplete) {
+            failStatusEl.textContent = '❌ Base Habits or Bad Habits not met. Day will be counted as a FAIL.';
+            failStatusEl.classList.remove('hidden');
+            document.getElementById('save-status').classList.add('hidden');
+        } else {
+            failStatusEl.textContent = '';
+            document.getElementById('save-status').classList.add('hidden');
+        }
+    }
+
+    /**
+     * Checks if all base habits (good checked, bad unchecked) were successfully completed.
+     * @returns {boolean} True if the day qualifies as a success (all mandatory conditions met), false otherwise.
+     */
+    function checkBaseHabitsForDaySuccess() {
+        let isSuccess = true;
+        const allHabits = getGlobalHabits();
+
+        // Check Good Base Habits (Must be checked)
+        allHabits.base.forEach(habit => {
+            const checkbox = document.getElementById(habit.id);
+            if (!checkbox || !checkbox.checked) {
+                isSuccess = false;
+            }
+        });
+        
+        // Check Bad Habits (Must be unchecked)
+        allHabits.bad.forEach(habit => {
+            const checkbox = document.getElementById(habit.id);
+            if (checkbox && checkbox.checked) {
+                isSuccess = false; // Bad habit was performed
+            }
+        });
+        
+        return isSuccess;
+    }
+
+    /**
+     * Populates the form with habits and checks if today has already been logged.
+     */
+    function loadDailyRoutine() {
+        const state = getChallengeState(activeUser);
+        const todayKey = getTodayDateKey();
+        const todayEntry = state.history[todayKey];
+        
+        const saveButton = document.querySelector('#today-entry-card button[onclick="saveDailyRoutine()"]');
+        const saveStatusEl = document.getElementById('save-status');
+        const failStatusEl = document.getElementById('fail-status');
+
+        // Clear previous state
+        saveStatusEl.classList.add('hidden');
+        failStatusEl.classList.add('hidden');
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save Day\'s Progress';
+
+        // Reset all checkboxes
+        document.querySelectorAll('.notion-checkbox').forEach(cb => cb.checked = false);
+
+        if (todayEntry) {
+            // Day already logged
+            saveButton.disabled = true;
+            saveButton.textContent = 'Day Already Logged';
+            saveStatusEl.textContent = `Routine saved for today! Status: ${todayEntry.status.toUpperCase()} (${todayEntry.score} Points)`;
+            saveStatusEl.classList.remove('hidden');
+
+            // Set checkboxes based on saved data
+            [...getGlobalHabits().base, ...getGlobalHabits().extra, ...getGlobalHabits().bad].forEach(habit => {
+                const savedHabit = todayEntry.habits.find(h => h.id === habit.id);
+                if (savedHabit && savedHabit.checked) {
+                    const checkbox = document.getElementById(habit.id);
+                    if (checkbox) checkbox.checked = true;
+                }
+            });
+            // Disable checkboxes after load if day is saved
+            document.querySelectorAll('#today-entry-card input[type="checkbox"]').forEach(cb => cb.disabled = true);
+
+        } else if (activeUser === 'User') {
+            // Day not logged, allow logging (only for 'User')
+            document.querySelectorAll('#today-entry-card input[type="checkbox"]').forEach(cb => cb.disabled = false);
+        }
+
+        updateDailyScore();
+    }
+
+    /**
+     * Handles the saving of the day's routine, applying strike and reset logic.
+     */
+    function saveDailyRoutine() {
+        if (activeUser === 'Girlfriend') return;
+        const state = getChallengeState(activeUser);
+        const todayKey = getTodayDateKey();
+        
+        if (state.history[todayKey]) {
+            console.error("Attempted to save routine twice for the same day.");
+            return;
+        }
+
+        // 1. Capture habit data and score
+        const daySuccess = checkBaseHabitsForDaySuccess();
+        let currentPoints = 0;
+        const loggedHabits = [];
+        const allHabits = [...getGlobalHabits().base, ...getGlobalHabits().extra, ...getGlobalHabits().bad];
+
+        document.querySelectorAll('#today-entry-card input[type="checkbox"]').forEach(checkbox => {
+            loggedHabits.push({ id: checkbox.id, checked: checkbox.checked });
+            if (checkbox.checked && checkbox.dataset.points) {
+                currentPoints += parseInt(checkbox.dataset.points);
+            }
+        });
+        
+        // 2. Apply Challenge Logic (Strikes/Day Count)
+        let newDayCount = state.dayCount;
+        let newStrikes = state.strikes;
+        let dayStatus = 'SUCCESS';
+
+        if (daySuccess) {
+            newDayCount++;
+        } else {
+            dayStatus = 'FAIL';
+            if (newStrikes > 0) {
+                newStrikes--; // Fail but have strikes left
+            } else {
+                // Out of strikes, reset challenge
+                newDayCount = 0;
+                newStrikes = STARTING_STRIKES;
+                showCustomAlert(`Challenge Reset! You failed Day ${state.dayCount + 1} with 0 strikes left. Starting over at Day 0 with ${STARTING_STRIKES} strikes.`);
+            }
+        }
+
+        // 3. Update State
+        const oldDayCount = state.dayCount;
+        state.dayCount = newDayCount;
+        state.strikes = newStrikes;
+        state.lastLoginDate = todayKey;
+
+        // Add to history
+        state.history[todayKey] = {
+            date: todayKey,
+            status: dayStatus,
+            score: currentPoints,
+            habits: loggedHabits
+        };
+
+        // 4. Save and Reload UI
+        saveChallengeState(activeUser, state);
+        loadDailyRoutine(); // Reloads to show 'Day Already Logged'
+        
+        // Optional: Show success message for 3 seconds
+        const saveStatusEl = document.getElementById('save-status');
+        saveStatusEl.textContent = `Day logged as ${dayStatus.toUpperCase()}! ${dayStatus === 'FAIL' ? 'Strike lost.' : 'Day count increased.'}`;
+        saveStatusEl.classList.remove('hidden');
+        setTimeout(() => saveStatusEl.classList.add('hidden'), 3000);
+
+        // 5. Check for Milestone
+        if (dayStatus === 'SUCCESS') {
+            checkMilestone(newDayCount);
+        }
+    }
+    
+    /**
+     * Checks if the new day count triggers a celebration milestone.
+     * @param {number} dayCount The new successful day count.
+     */
+    function checkMilestone(dayCount) {
+        let milestone = null;
+        if (dayCount === CHALLENGE_GOAL) {
+            milestone = MILESTONE_MESSAGES[CHALLENGE_GOAL];
+        } else if (dayCount > CHALLENGE_GOAL && (dayCount - CHALLENGE_GOAL) % 30 === 0) {
+            // Subsequent 30-day milestones (80, 110, 140, etc.)
+            const totalDays = CHALLENGE_GOAL + ((dayCount - CHALLENGE_GOAL) % 30)
+            milestone = {
+                title: `You did it! ${dayCount} Days of Discipline!`,
+                message: `You crushed the ${CHALLENGE_GOAL}-day goal and reached ${dayCount} days! That's another 30 days of commitment you've cemented into your life. The dedication you show here will carry over into everything you do. You are an inspiration!`,
+                quote: MILESTONE_MESSAGES[80].quote, // Use the 80-day quote for consistency
+                author: MILESTONE_MESSAGES[80].author
+            };
+        }
+        
+        if (milestone) {
+            showCelebrationModal(milestone);
+        }
+    }
+    
+    /**
+     * Displays the custom celebration modal.
+     * @param {object} milestone The milestone message object.
+     */
+    function showCelebrationModal(milestone) {
+        document.getElementById('celebration-title').textContent = milestone.title;
+        document.getElementById('celebration-message').textContent = milestone.message;
+        document.getElementById('celebration-quote').textContent = milestone.quote;
+        document.getElementById('celebration-author').textContent = milestone.author;
+        
+        const modal = document.getElementById('celebration-modal');
+        modal.classList.remove('hidden');
+        
+        // Apply animation class
+        const modalContent = modal.querySelector('div:nth-child(1)');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }
+
+    /**
+     * Closes the custom celebration modal.
+     */
+    function closeCelebrationModal() {
+        const modal = document.getElementById('celebration-modal');
+        const modalContent = modal.querySelector('div:nth-child(1)');
+        
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300); // Match transition duration
+    }
+
+    /**
+     * Helper for custom alert/message (replacing window.alert).
+     */
+    function showCustomAlert(message) {
+        // Since we can't use a simple alert, let's use the save-status area as a temporary error box.
+        const failStatusEl = document.getElementById('fail-status');
+        failStatusEl.textContent = `🚨 ${message}`;
+        failStatusEl.classList.remove('hidden');
+        
+        // Hide the error after 8 seconds
+        setTimeout(() => failStatusEl.classList.add('hidden'), 8000);
+    }
+    
+    /**
+     * Sets the active filter for the history grid and re-renders.
+     * @param {string} filter 'all', 'week', 'month', or 'year'
+     */
+    function setActiveFilter(filter) {
+        activeHistoryFilter = filter;
+        
+        // Update button styles
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add('bg-gray-600', 'text-gray-200');
+        });
+        document.querySelector(`.filter-btn[data-filter="${filter}"]`).classList.add('bg-blue-600', 'text-white');
+        document.querySelector(`.filter-btn[data-filter="${filter}"]`).classList.remove('bg-gray-600', 'text-gray-200');
+        
+        // Re-render history with the new filter
+        if (activeUser) {
+            renderHistory(getChallengeState(activeUser).history);
+        }
+    }
+    
+    /**
+     * Filters the history data based on the active filter setting.
+     * @param {object} history The full history object.
+     * @returns {Array<object>} Filtered and sorted history entries.
+     */
+    function filterHistory(history) {
+        const historyKeys = Object.keys(history).sort((a, b) => new Date(b) - new Date(a)); // Sort descending by date
+        const today = new Date();
+        
+        return historyKeys.filter(dateKey => {
+            if (activeHistoryFilter === 'all') return true;
+            
+            const entryDate = new Date(dateKey + 'T00:00:00');
+            
+            if (activeHistoryFilter === 'year') {
+                return entryDate.getFullYear() === today.getFullYear();
+            }
+            
+            if (activeHistoryFilter === 'month') {
+                return entryDate.getMonth() === today.getMonth() && entryDate.getFullYear() === today.getFullYear();
+            }
+            
+            if (activeHistoryFilter === 'week') {
+                // Get the start of the current week (Sunday)
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay());
+                startOfWeek.setHours(0, 0, 0, 0);
+
+                // Get the end of the current week (Saturday)
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
+
+                return entryDate >= startOfWeek && entryDate <= endOfWeek;
+            }
+            return true;
+        }).map(key => history[key]);
+    }
+
+    /**
+     * Renders the history cards in the dashboard.
+     * @param {object} history The history object from the state.
+     */
+    function renderHistory(history) {
+        const historyGrid = document.getElementById('history-grid');
+        historyGrid.innerHTML = '';
+        
+        const filteredEntries = filterHistory(history);
+        const sortedKeys = Object.keys(history).sort(); 
+        const globalHabits = getGlobalHabits();
+        const allHabits = [...globalHabits.base, ...globalHabits.extra, ...globalHabits.bad];
+
+        if (filteredEntries.length === 0) {
+            historyGrid.innerHTML = `<div class="p-4 notion-dark-card rounded-xl text-center text-gray-400 col-span-full">No days logged for the filter: ${activeHistoryFilter.toUpperCase()}.</div>`;
+            return;
+        }
+
+        filteredEntries.forEach((entry) => {
+            const key = entry.date;
+            const isToday = key === getTodayDateKey();
+            
+            // Calculate day number based on chronological order in the FULL history
+            const dayNumber = sortedKeys.indexOf(key) + 1;
+            
+            // Determine card color based on status
+            let statusColor = entry.status === 'SUCCESS' ? 'bg-green-600' : 'bg-red-600';
+            let statusIcon = entry.status === 'SUCCESS' ? '✅' : '❌';
+            
+            // Prepare habits summary
+            let habitsSummary = '';
+            
+            allHabits.forEach(habitDef => {
+                const loggedHabit = entry.habits.find(h => h.id === habitDef.id);
+                if (loggedHabit) {
+                    const isChecked = loggedHabit.checked;
+                    let icon = '';
+                    
+                    if (habitDef.type === 'bad') {
+                        // Bad habit: UNCHECKED is good (✅), CHECKED is bad (❌)
+                        icon = isChecked ? '❌' : '✅';
+                    } else if (habitDef.type === 'good') {
+                        // Base habit: CHECKED is good (✅), UNCHECKED is bad (⬜)
+                        icon = isChecked ? '✅' : '⬜';
+                    } else {
+                        // Extra habit: CHECKED is point (⭐), UNCHECKED is skipped (⬜)
+                        icon = isChecked ? '⭐' : '⬜';
+                    }
+                    
+                    habitsSummary += `<p class="flex items-center text-sm mb-1">
+                                        <span class="mr-2">${icon}</span>
+                                        ${habitDef.name}
+                                    </p>`;
+                }
+            });
+
+
+            const cardHtml = `
+                <div class="notion-dark-card p-4 rounded-xl shadow-lg transition duration-200 hover:shadow-xl hover:scale-[1.01] ${isToday ? 'border-2 border-blue-400' : ''}">
+                    <div class="flex justify-between items-center pb-2 mb-2 border-b border-gray-700">
+                        <h3 class="text-xl font-semibold text-gray-100">
+                            ${isToday ? 'Today' : formatDisplayDate(key)}
+                        </h3>
+                        <span class="text-sm font-medium ${statusColor} text-white px-3 py-1 rounded-full">
+                            Day ${dayNumber}
+                        </span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-3xl font-extrabold ${entry.score > 0 ? 'text-green-400' : 'text-blue-400'}">${entry.score} <span class="text-base font-normal text-gray-400">Points</span></span>
+                        <span class="text-xl font-bold text-gray-200 flex items-center">
+                            ${statusIcon} ${entry.status}
+                        </span>
+                    </div>
+
+                    <div class="text-sm text-gray-300 space-y-1 mt-3">
+                        ${habitsSummary}
+                    </div>
+                </div>
+            `;
+            historyGrid.innerHTML += cardHtml;
+        });
+    }
+
+    // --- Habit Manager Modal Functions ---
+    let activeHabitType = 'base';
+
+    function openHabitManagerModal() {
+        if (activeUser === 'Girlfriend') return;
+        document.getElementById('habit-manager-modal').classList.remove('hidden');
+        setActiveTab('base');
+    }
+
+    function closeHabitManagerModal() {
+        document.getElementById('habit-manager-modal').classList.add('hidden');
+    }
+
+    function setActiveTab(type) {
+        activeHabitType = type;
+        
+        // Update tab styles
+        document.querySelectorAll('.border-b-2').forEach(btn => {
+            btn.classList.remove('border-blue-600', 'text-blue-600');
+            btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-blue-600');
+        });
+        document.getElementById(`tab-${type}`).classList.add('border-blue-600', 'text-blue-600');
+        document.getElementById(`tab-${type}`).classList.remove('border-transparent', 'text-gray-500');
+
+        // Update form title
+        const titleMap = {
+            'base': 'Add New Base Habit (Good Habit)',
+            'extra': 'Add New Extra Habit (Point Scoring)',
+            'bad': 'Add New Bad Habit (Avoidance Required)'
+        };
+        document.getElementById('add-habit-title').textContent = titleMap[type];
+
+        renderHabitManagerList();
+    }
+    
+    function renderHabitManagerList() {
+        const habitsContainer = document.getElementById('habit-manager-list');
+        const habits = getGlobalHabits()[activeHabitType];
+        
+        if (!habits) {
+            habitsContainer.innerHTML = '<p class="text-gray-500">No habits found for this category.</p>';
+            return;
+        }
+
+        habitsContainer.innerHTML = habits.map(habit => `
+            <div class="flex items-center justify-between p-2 mb-2 bg-gray-50 rounded border">
+                <span class="text-gray-800">${habit.name}</span>
+                <button onclick="removeHabit('${activeHabitType}', '${habit.id}')" class="text-red-500 hover:text-red-700 text-sm font-semibold">
+                    Remove
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function addNewHabit() {
+        const nameInput = document.getElementById('new-habit-name');
+        const name = nameInput.value.trim();
+        const type = activeHabitType;
+
+        if (!name) return;
+
+        const globalHabits = getGlobalHabits();
+        
+        const newHabit = { 
+            id: generateHabitId(type), 
+            name: name,
+            type: type === 'bad' ? 'bad' : 'good' // Only bad habits get type 'bad'
+        };
+
+        if (type === 'extra') {
+            newHabit.points = 1; // Default 1 point
+        }
+        
+        globalHabits[type].push(newHabit);
+        saveGlobalHabits(globalHabits);
+        
+        nameInput.value = ''; // Clear input
+        renderHabitManagerList(); // Refresh modal list
+        renderHabitsToForm(); // Refresh dashboard form
+        loadDailyRoutine();
+    }
+    
+    function removeHabit(type, id) {
+        // Find the specific habit name to use in the custom message
+        const globalHabits = getGlobalHabits();
+        const habitToRemove = globalHabits[type].find(h => h.id === id);
+        
+        // Since we can't use confirm(), we'll skip the confirmation for simplicity in this context.
+        // In a real app, this would be replaced with a custom confirmation modal.
+        
+        globalHabits[type] = globalHabits[type].filter(habit => habit.id !== id);
+        saveGlobalHabits(globalHabits);
+        
+        // Provide feedback via console or a small UI message
+        console.log(`Habit removed: ${habitToRemove ? habitToRemove.name : id}`);
+        
+        renderHabitManagerList(); // Refresh modal list
+        renderHabitsToForm(); // Refresh dashboard form
+        loadDailyRoutine();
+    }
+    
+    // --- Charting Logic ---
+    
+    function populateChartMonthSelector() {
+        const state = getChallengeState(activeUser);
+        const historyKeys = Object.keys(state.history).sort();
+        const monthSelector = document.getElementById('chart-month-select');
+        monthSelector.innerHTML = '<option value="all">All Time</option>'; // Always include 'All Time'
+        
+        const uniqueMonths = new Set();
+        historyKeys.forEach(dateKey => {
+            uniqueMonths.add(dateKey.substring(0, 7)); // YYYY-MM
+        });
+        
+        Array.from(uniqueMonths).sort().reverse().forEach(monthKey => {
+            const [year, month] = monthKey.split('-');
+            const date = new Date(year, month - 1, 1);
+            const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            
+            const option = document.createElement('option');
+            option.value = monthKey;
+            option.textContent = monthName;
+            monthSelector.appendChild(option);
+        });
+    }
+
+    function renderCharts() {
+        if (!activeUser || currentViewMode !== 'charts') return;
+        
+        const state = getChallengeState(activeUser);
+        const selectedMonth = document.getElementById('chart-month-select').value;
+        const chartType = document.getElementById('chart-type-select').value;
+        const history = state.history;
+        
+        let filteredHistory = Object.keys(history)
+            .filter(date => selectedMonth === 'all' || date.startsWith(selectedMonth))
+            .sort()
+            .map(date => history[date]);
+        
+        if (filteredHistory.length === 0) {
+            if (currentChart) currentChart.destroy();
+            // A clearer message for no data might be needed, but Chart.js handles canvas visibility.
+            return;
+        } 
+        
+        let labels = filteredHistory.map(entry => formatDisplayDate(entry.date).split(',')[0]);
+        let data, label, color;
+
+        if (chartType === 'success_rate') {
+            data = filteredHistory.map(entry => entry.status === 'SUCCESS' ? 1 : 0);
+            label = 'Daily Success Rate (1 = Success, 0 = Fail)';
+            color = 'rgba(75, 192, 192, 0.8)'; // Teal/Green
+        } else { // points_total
+            data = filteredHistory.map(entry => entry.score);
+            label = 'Daily Extra Habit Points';
+            color = 'rgba(54, 162, 235, 0.8)'; // Blue
+        }
+        
+        // Destroy existing chart instance
+        if (currentChart) {
+            currentChart.destroy();
+        }
+
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        currentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: color,
+                    borderColor: color.replace('0.8', '1'),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' }, // Tailwind slate-400
+                        grid: { color: '#4a5057' }   // Subtle grid lines
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#4a5057' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#dcdfe4' } // Light text for legend
+                    },
+                    title: {
+                        display: true,
+                        text: `${activeUser}'s Progress: ${label}`,
+                        color: '#e5e7eb' // Light text for title
+                    }
+                }
+            }
+        });
+    }
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Attach filter handlers
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', (e) => setActiveFilter(e.target.dataset.filter));
+        });
+        
+        // Ensure initial habits are stored if they don't exist
+        getGlobalHabits(); 
+        
+        // Default to landing page
+        viewLandingPage();
+    });
+</script>
+
+</body>
+</html>
